@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/signal"
+	// "os"
+	// "os/signal"
 
+	"github.com/darrik/bootdev-learn-pub-sub-starter/internal/gamelogic"
 	"github.com/darrik/bootdev-learn-pub-sub-starter/internal/pubsub"
 	"github.com/darrik/bootdev-learn-pub-sub-starter/internal/routing"
 
@@ -22,7 +23,6 @@ func main() {
 	}
 	defer dial.Close()
 	fmt.Println("Connection to RabbitMQ established!")
-	fmt.Println("Press CTRL-C to quit.")
 
 	mqchan, err := dial.Channel()
 	if err != nil {
@@ -30,14 +30,42 @@ func main() {
 		return
 	}
 
-	err = pubsub.PublishJSON(mqchan, string(routing.ExchangePerilDirect), string(routing.PauseKey), routing.PlayingState{IsPaused: true})
-	if err != nil {
-		fmt.Printf("error publishing json: %s\n", err)
-		return
+	// fmt.Println("Press CTRL-C to quit.")
+
+	gamelogic.PrintServerHelp()
+	for {
+		input := gamelogic.GetInput()
+		if len(input) < 1 || len(input[0]) < 1 {
+			continue
+		}
+
+		if input[0] == "pause" {
+			fmt.Println("Pausing game")
+
+			err = pubsub.PublishJSON(mqchan, string(routing.ExchangePerilDirect), string(routing.PauseKey), routing.PlayingState{IsPaused: true})
+			if err != nil {
+				fmt.Printf("error pausing game: %s\n", err)
+				return
+			}
+		} else if input[0] == "resume" {
+			fmt.Println("Resuming game")
+
+			err = pubsub.PublishJSON(mqchan, string(routing.ExchangePerilDirect), string(routing.PauseKey), routing.PlayingState{IsPaused: false})
+			if err != nil {
+				fmt.Printf("error unpausing game: %s\n", err)
+				return
+			}
+		} else if input[0] == "quit" {
+			fmt.Println("Quitting...")
+
+			return
+		} else {
+			fmt.Println("Unknown command")
+		}
 	}
 
-	// wait for ctrl+c
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-	<-signalChan
+	// // wait for ctrl+c
+	// signalChan := make(chan os.Signal, 1)
+	// signal.Notify(signalChan, os.Interrupt)
+	// <-signalChan
 }
