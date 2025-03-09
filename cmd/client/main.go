@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/signal"
+	// "os"
+	// "os/signal"
 
 	"github.com/darrik/bootdev-learn-pub-sub-starter/internal/gamelogic"
 	"github.com/darrik/bootdev-learn-pub-sub-starter/internal/pubsub"
@@ -37,9 +37,40 @@ func main() {
 		return
 	}
 
-	fmt.Println("Press CTRL-C to quit.")
-	// wait for ctrl+c
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-	<-signalChan
+	gs := gamelogic.NewGameState(username)
+	for {
+		input := gamelogic.GetInput()
+		if len(input) < 1 || len(input[0]) < 1 {
+			continue
+		}
+
+		if input[0] == "spawn" {
+			err := gs.CommandSpawn(input)
+			if err != nil {
+				fmt.Printf("error: %s\n", err)
+			}
+		} else if input[0] == "move" {
+			_, err := gs.CommandMove(input)
+			if err != nil {
+				fmt.Printf("error: %s\n", err)
+			}
+		} else if input[0] == "status" {
+			gs.CommandStatus()
+		} else if input[0] == "help" {
+			gamelogic.PrintClientHelp()
+		} else if input[0] == "spam" {
+			fmt.Println("Spamming not allowed yet!")
+		} else if input[0] == "quit" {
+			gamelogic.PrintQuit()
+			return
+		} else {
+			fmt.Println("Unknown command")
+		}
+	}
+
+	// fmt.Println("Press CTRL-C to quit.")
+	// // wait for ctrl+c
+	// signalChan := make(chan os.Signal, 1)
+	// signal.Notify(signalChan, os.Interrupt)
+	// <-signalChan
 }

@@ -24,6 +24,12 @@ func main() {
 	defer dial.Close()
 	fmt.Println("Connection to RabbitMQ established!")
 
+	_, _, err = pubsub.DeclareAndBind(dial, routing.ExchangePerilTopic, routing.GameLogSlug, routing.GameLogSlug+".*", pubsub.DurableQueueType)
+	if err != nil {
+		fmt.Printf("rabbitmq error: %s\n", err)
+		return
+	}
+
 	mqchan, err := dial.Channel()
 	if err != nil {
 		fmt.Printf("error creating rabbitmq channel: %s\n", err)
