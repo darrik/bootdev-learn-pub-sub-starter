@@ -6,13 +6,15 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+type SimpleQueueType int
+
 const (
-	DurableQueueType int = iota
+	DurableQueueType SimpleQueueType = iota
 	TransientQueueType
 )
 
 // simpleQueueType is an enum to represent "durable" or "transient"
-func DeclareAndBind(conn *amqp.Connection, exchange, queueName, key string, simpleQueueType int) (*amqp.Channel, amqp.Queue, error) {
+func DeclareAndBind(conn *amqp.Connection, exchange, queueName, key string, simpleQueueType SimpleQueueType) (*amqp.Channel, amqp.Queue, error) {
 	mqchan, err := conn.Channel()
 	if err != nil {
 		fmt.Printf("error creating rabbitmq channel: %s\n", err)
